@@ -100,7 +100,7 @@ async def Star(app: GraiaMiraiApplication, group: Group, mesg: MessageChain,memb
 async def ChangeWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageChain,member: Member):
 	#locCity.txt
 	weatherList=GetConfigs.getConf(WeatherList)
-	print(mesg.get(At).target())
+	#print(mesg.get(At).target())
 	#print(type(member.id))
 	if (mesg.asDisplay() == '观星' or mesg.asDisplay()=='早' ):
 		await app.sendGroupMessage(group, MessageChain.create([
