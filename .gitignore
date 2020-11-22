@@ -1,1 +1,7 @@
 config/Cobot/*
+_windows
+codestyles
+inspection
+debugger.xml
+code.style.schemes.xml
+colors.scheme.xml

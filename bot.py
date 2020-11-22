@@ -15,6 +15,17 @@ WeatherList = "./config/Cobot/WeatherList.yml"
 
 loop = asyncio.get_event_loop()
 
+
+def getAt(msg):
+    msgString = msg.asDisplay()
+    idList = []
+    atList = msg.get(At)
+    for at in atList:
+        msgString = msgString.replace(at.display, '')
+        idList.append(at.target)
+    return idList, msgString
+
+
 f = open('data.txt', encoding='utf-8', errors='ignore')
 line = f.readline()
 sample = '	'
@@ -68,7 +79,8 @@ app = GraiaMiraiApplication(
 
 @bcc.receiver("GroupMessage")
 async def Indeed(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
-    if '确实' in mesg.asDisplay():
+    msg=getAt(mesg)[1]
+    if '确实' in msg:
         await app.sendGroupMessage(group, MessageChain.create([
             Plain(text='确实')]))
         pass
@@ -76,7 +88,8 @@ async def Indeed(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
 
 @bcc.receiver("GroupMessage")
 async def IndeedNext(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
-    if '下次一定' in mesg.asDisplay():
+    msg=getAt(mesg)[1]
+    if '下次一定' in msg:
         await app.sendGroupMessage(group, MessageChain.create([
             Plain(text='下次一定')]))
         pass
@@ -84,7 +97,8 @@ async def IndeedNext(app: GraiaMiraiApplication, group: Group, mesg: MessageChai
 
 @bcc.receiver("GroupMessage")
 async def GoodNight(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
-    if mesg.asDisplay() == '晚安':
+    msg=getAt(mesg)[1]
+    if msg == '晚安':
         await app.sendGroupMessage(group, MessageChain.create([
             Plain(text='晚安')]))
         pass
@@ -92,26 +106,27 @@ async def GoodNight(app: GraiaMiraiApplication, group: Group, mesg: MessageChain
 
 @bcc.receiver("GroupMessage")
 async def Star(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, member: Member):
-    # locCity.txt
     weatherList = GetConfigs.getConf(WeatherList)
-    # print(member.id)
-    # print(type(member.id))
-    if (mesg.asDisplay() == '观星' or mesg.asDisplay() == '早'):
+    msg=getAt(mesg)[1]
+    if (msg == '观星' or msg == '早'):
         await app.sendGroupMessage(group, MessageChain.create([
             Plain(text=Weather.getWeather(weatherList[str(member.id)]))]))
-        pass
+    pass
 
 
-# @bcc.receiver("GroupMessage")
-# async def ChangeWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageChain,member: Member):
-#	#locCity.txt
-#	weatherList=GetConfigs.getConf(WeatherList)
-#	#print(mesg.get(At).target())
-#	#print(type(member.id))
-#	if (mesg.asDisplay() == '观星' or mesg.asDisplay()=='早' ):
-#		await app.sendGroupMessage(group, MessageChain.create([
-#			Plain(text=Weather.getWeather(weatherList[str(member.id)]))]))
-#		pass
+#@bcc.receiver("GroupMessage")
+#async def ChangeWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, member: Member):
+#    # locCity.txt
+#    # weatherList=GetConfigs.getConf(WeatherList)
+#    atid, msg = getAt(mesg)
+#    print(atid)
+#    print(msg)  # [0].target)
+## print(type(member.id))
+##	if (mesg.asDisplay() == '观星' or mesg.asDisplay()=='早' ):
+##		await app.sendGroupMessage(group, MessageChain.create([
+##			Plain(text=Weather.getWeather(weatherList[str(member.id)]))]))
+#    pass
+
 
 @bcc.receiver("GroupMessage")
 async def Games(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
