@@ -11,7 +11,7 @@ from graia.application.friend import Friend
 from graia.application.group import Group, Member
 
 QQconfFile = "./config/Cobot/QQServe.yml"
-WeatherList = "./config/Cobot/WeatherList.yml"
+WeatherFile = "./config/Cobot/WeatherList.yml"
 
 loop = asyncio.get_event_loop()
 
@@ -59,13 +59,14 @@ def chengyu_compar(now, next):
 
 QQConfig = GetConfigs.getConf(QQconfFile)
 QQserver = "http://" + QQConfig["http"] + ":" + str(QQConfig["port"])
+BotId=QQConfig["account"]
 bcc = Broadcast(loop=loop)
 app = GraiaMiraiApplication(
     broadcast=bcc,
     connect_info=Session(
         host=QQserver,  # 填入 httpapi 服务运行的地址
         authKey=QQConfig["authKey"],  # 填入 authKey
-        account=QQConfig["account"],  # 你的机器人的 qq 号
+        account=BotId,  # 你的机器人的 qq 号
         websocket=True  # Graia 已经可以根据所配置的消息接收的方式来保证消息接收部分的正常运作.
     )
 )
@@ -106,7 +107,7 @@ async def GoodNight(app: GraiaMiraiApplication, group: Group, mesg: MessageChain
 
 @bcc.receiver("GroupMessage")
 async def Star(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, member: Member):
-    weatherList = GetConfigs.getConf(WeatherList)
+    weatherList = GetConfigs.getConf(WeatherFile)
     msg=getAt(mesg)[1]
     if (msg == '观星' or msg == '早'):
         await app.sendGroupMessage(group, MessageChain.create([
@@ -114,18 +115,24 @@ async def Star(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, mem
     pass
 
 
-#@bcc.receiver("GroupMessage")
-#async def ChangeWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, member: Member):
-#    # locCity.txt
-#    # weatherList=GetConfigs.getConf(WeatherList)
-#    atid, msg = getAt(mesg)
-#    print(atid)
-#    print(msg)  # [0].target)
-## print(type(member.id))
-##	if (mesg.asDisplay() == '观星' or mesg.asDisplay()=='早' ):
-##		await app.sendGroupMessage(group, MessageChain.create([
-##			Plain(text=Weather.getWeather(weatherList[str(member.id)]))]))
-#    pass
+@bcc.receiver("GroupMessage")
+async def ChangeWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, member: Member):
+    # locCity.txt
+    weatherList=GetConfigs.getConf(WeatherFile)
+    atid, msg = getAt(mesg)
+    msg=msg.strip()
+    if atid!=[]:
+        if str(atid[0])==BotId and msg[:2]=="我在":
+            newcity=msg[2:]
+            if Weather.getWeather(newcity)!='Error：您输入的城市有误':
+                weatherList[str(member.id)]=newcity
+                GetConfigs.writeConf(WeatherFile,str(member.id),newcity)
+                await app.sendGroupMessage(group, MessageChain.create([
+                			Plain(text=Weather.getWeather(weatherList[str(member.id)]))]))
+            else:
+                await app.sendGroupMessage(group, MessageChain.create([
+                    Plain(text=msg[2:]+"大概不是国内城市，请检查。")]))
+    pass
 
 
 @bcc.receiver("GroupMessage")
