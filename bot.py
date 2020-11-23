@@ -120,7 +120,7 @@ async def ChangeWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageC
     # locCity.txt
     weatherList=GetConfigs.getConf(WeatherFile)
     atid, msg = getAt(mesg)
-    msg=msg.strip()
+    msg=msg.replace(' ', '')
     if atid!=[]:
         if str(atid[0])==BotId and msg[:2]=="我在":
             newcity=msg[2:]
@@ -131,9 +131,24 @@ async def ChangeWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageC
                 			Plain(text=Weather.getWeather(weatherList[str(member.id)]))]))
             else:
                 await app.sendGroupMessage(group, MessageChain.create([
-                    Plain(text=msg[2:]+"大概不是国内城市，请检查。")]))
+                    Plain(text=msg[2:]+"大概不是国内城市名称，请检查。")]))
     pass
 
+
+@bcc.receiver("GroupMessage")
+async def SearchWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, member: Member):
+    atid, msg = getAt(mesg)
+    msg=msg.replace(' ', '')
+    if atid!=[]:
+        if str(atid[0])==BotId and msg[:1]=="查":
+            city=msg[1:]
+            if Weather.getWeather(city)!='Error：您输入的城市有误':
+                await app.sendGroupMessage(group, MessageChain.create([
+                    Plain(text=Weather.getWeather(city))]))
+            else:
+                await app.sendGroupMessage(group, MessageChain.create([
+                    Plain(text=msg[1:]+"大概不是国内城市名称，请检查。")]))
+    pass
 
 @bcc.receiver("GroupMessage")
 async def Games(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
