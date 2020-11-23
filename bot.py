@@ -59,7 +59,7 @@ def chengyu_compar(now, next):
 
 QQConfig = GetConfigs.getConf(QQconfFile)
 QQserver = "http://" + QQConfig["http"] + ":" + str(QQConfig["port"])
-BotId=QQConfig["account"]
+BotId = QQConfig["account"]
 bcc = Broadcast(loop=loop)
 app = GraiaMiraiApplication(
     broadcast=bcc,
@@ -80,7 +80,7 @@ app = GraiaMiraiApplication(
 
 @bcc.receiver("GroupMessage")
 async def Indeed(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
-    msg=getAt(mesg)[1]
+    msg = getAt(mesg)[1]
     if '确实' in msg:
         await app.sendGroupMessage(group, MessageChain.create([
             Plain(text='确实')]))
@@ -89,7 +89,7 @@ async def Indeed(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
 
 @bcc.receiver("GroupMessage")
 async def IndeedNext(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
-    msg=getAt(mesg)[1]
+    msg = getAt(mesg)[1]
     if '下次一定' in msg:
         await app.sendGroupMessage(group, MessageChain.create([
             Plain(text='下次一定')]))
@@ -98,7 +98,7 @@ async def IndeedNext(app: GraiaMiraiApplication, group: Group, mesg: MessageChai
 
 @bcc.receiver("GroupMessage")
 async def GoodNight(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
-    msg=getAt(mesg)[1]
+    msg = getAt(mesg)[1]
     if msg == '晚安':
         await app.sendGroupMessage(group, MessageChain.create([
             Plain(text='晚安')]))
@@ -108,7 +108,7 @@ async def GoodNight(app: GraiaMiraiApplication, group: Group, mesg: MessageChain
 @bcc.receiver("GroupMessage")
 async def Star(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, member: Member):
     weatherList = GetConfigs.getConf(WeatherFile)
-    msg=getAt(mesg)[1]
+    msg = getAt(mesg)[1]
     if (msg == '观星' or msg == '早'):
         await app.sendGroupMessage(group, MessageChain.create([
             Plain(text=Weather.getWeather(weatherList[str(member.id)]))]))
@@ -118,37 +118,38 @@ async def Star(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, mem
 @bcc.receiver("GroupMessage")
 async def ChangeWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, member: Member):
     # locCity.txt
-    weatherList=GetConfigs.getConf(WeatherFile)
+    weatherList = GetConfigs.getConf(WeatherFile)
     atid, msg = getAt(mesg)
-    msg=msg.replace(' ', '')
-    if atid!=[]:
-        if str(atid[0])==BotId and msg[:2]=="我在":
-            newcity=msg[2:]
-            if Weather.getWeather(newcity)!='Error：您输入的城市有误':
-                weatherList[str(member.id)]=newcity
-                GetConfigs.writeConf(WeatherFile,str(member.id),newcity)
+    msg = msg.replace(' ', '')
+    if atid != []:
+        if str(atid[0]) == BotId and msg[:2] == "我在":
+            newcity = msg[2:]
+            if Weather.getWeather(newcity) != 'Error：您输入的城市有误':
+                weatherList[str(member.id)] = newcity
+                GetConfigs.writeConf(WeatherFile, str(member.id), newcity)
                 await app.sendGroupMessage(group, MessageChain.create([
-                			Plain(text=Weather.getWeather(weatherList[str(member.id)]))]))
+                    Plain(text=Weather.getWeather(weatherList[str(member.id)]))]))
             else:
                 await app.sendGroupMessage(group, MessageChain.create([
-                    Plain(text=msg[2:]+"大概不是国内城市名称，请检查。")]))
+                    Plain(text=msg[2:] + "大概不是国内城市名称，请检查。")]))
     pass
 
 
 @bcc.receiver("GroupMessage")
-async def SearchWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, member: Member):
+async def SearchWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
     atid, msg = getAt(mesg)
-    msg=msg.replace(' ', '')
-    if atid!=[]:
-        if str(atid[0])==BotId and msg[:1]=="查":
-            city=msg[1:]
-            if Weather.getWeather(city)!='Error：您输入的城市有误':
+    msg = msg.replace(' ', '')
+    if atid != []:
+        if str(atid[0]) == BotId and msg[:1] == "查":
+            city = msg[1:]
+            if Weather.getWeather(city) != 'Error：您输入的城市有误':
                 await app.sendGroupMessage(group, MessageChain.create([
                     Plain(text=Weather.getWeather(city))]))
             else:
                 await app.sendGroupMessage(group, MessageChain.create([
-                    Plain(text=msg[1:]+"大概不是国内城市名称，请检查。")]))
+                    Plain(text=msg[1:] + "大概不是国内城市名称，请检查。")]))
     pass
+
 
 @bcc.receiver("GroupMessage")
 async def Games(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
@@ -200,6 +201,26 @@ async def Games(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
                     chengyu_now = chengyu_next
                     pass
                 break
+    pass
+
+
+@bcc.receiver("GroupMessage")
+async def SearchWord(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
+    atid, msg = getAt(mesg)
+    msg = msg.replace(' ', '')
+    if atid != []:
+        if str(atid[0]) == BotId and msg[:1] == "词":
+            word = msg[1:]
+            for index in range(number):
+                if word == chengyuku[index][0]:
+                    await app.sendGroupMessage(group, MessageChain.create([
+                        Plain(
+                            text=chengyuku[index][0] + '(' + "'".join(chengyuku[index][1]) + '):' + chengyuku[index][2])
+                    ]))
+                    break
+            else:
+                await app.sendGroupMessage(group, MessageChain.create([
+                    Plain(text='“' + msg[1:] + '”' + "不在词库中哦。")]))
     pass
 
 
