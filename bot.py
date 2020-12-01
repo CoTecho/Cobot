@@ -3,7 +3,7 @@ from graia.broadcast import Broadcast
 from graia.application import GraiaMiraiApplication, Session
 from graia.application.message.chain import MessageChain
 import asyncio
-import Weather
+import CMAWeather
 import GetConfigs
 
 from graia.application.message.elements.internal import Plain, At
@@ -106,12 +106,24 @@ async def GoodNight(app: GraiaMiraiApplication, group: Group, mesg: MessageChain
 
 
 @bcc.receiver("GroupMessage")
+async def GetHelp(app: GraiaMiraiApplication, group: Group, mesg: MessageChain):
+    msg = getAt(mesg)[1]
+    if msg == '帮助':
+        await app.sendGroupMessage(group, MessageChain.create([
+            Plain(text='帮助参见：https://github.com/CoTecho/Cobot/blob/master/README.md')]))
+        pass
+
+
+@bcc.receiver("GroupMessage")
 async def Star(app: GraiaMiraiApplication, group: Group, mesg: MessageChain, member: Member):
     weatherList = GetConfigs.getConf(WeatherFile)
     msg = getAt(mesg)[1]
     if (msg == '观星' or msg == '早'):
+        weather = CMAWeather.getWeather(weatherList[str(member.id)])
+        if not weather:
+            weather = weatherList[str(member.id)] + '暂时查不到哦，快使用指令更新你的位置吧！'
         await app.sendGroupMessage(group, MessageChain.create([
-            Plain(text=Weather.getWeather(weatherList[str(member.id)]))]))
+            Plain(text=weather)]))
     pass
 
 
@@ -124,14 +136,17 @@ async def ChangeWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageC
     if atid != []:
         if str(atid[0]) == BotId and msg[:2] == "我在":
             newcity = msg[2:]
-            if Weather.getWeather(newcity) != 'Error：您输入的城市有误':
+            weather = CMAWeather.getWeather(newcity)
+            if not weather:
+                weather = newcity + '暂时查不到哦。'
+                await app.sendGroupMessage(group, MessageChain.create([
+                    Plain(text=weather)]))
+            else:
                 weatherList[str(member.id)] = newcity
                 GetConfigs.writeConf(WeatherFile, str(member.id), newcity)
                 await app.sendGroupMessage(group, MessageChain.create([
-                    Plain(text=Weather.getWeather(weatherList[str(member.id)]))]))
-            else:
-                await app.sendGroupMessage(group, MessageChain.create([
-                    Plain(text=msg[2:] + "大概不是国内城市名称，请检查。")]))
+                    Plain(text=weather)]))
+
     pass
 
 
@@ -142,12 +157,14 @@ async def SearchWeather(app: GraiaMiraiApplication, group: Group, mesg: MessageC
     if atid != []:
         if str(atid[0]) == BotId and msg[:1] == "查":
             city = msg[1:]
-            if Weather.getWeather(city) != 'Error：您输入的城市有误':
+            weather = CMAWeather.getWeather(city)
+            if not weather:
+                weather = city + '暂时查不到哦。'
                 await app.sendGroupMessage(group, MessageChain.create([
-                    Plain(text=Weather.getWeather(city))]))
+                    Plain(text=weather)]))
             else:
                 await app.sendGroupMessage(group, MessageChain.create([
-                    Plain(text=msg[1:] + "大概不是国内城市名称，请检查。")]))
+                    Plain(text=weather)]))
     pass
 
 
