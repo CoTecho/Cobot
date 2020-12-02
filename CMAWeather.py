@@ -1,9 +1,7 @@
-from gzip import decompress
 from json import loads
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 from socket import timeout
-from pandas import read_html
 from csv import reader
 
 from bs4 import BeautifulSoup
